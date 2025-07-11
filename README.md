@@ -4,39 +4,59 @@ A comprehensive, modular web scraper for extracting business information from Go
 
 ## 🚀 Features
 
-- **Comprehensive Data Extraction**: Business name, rating, reviews, contact info, services URLs, hours, special features
-- **Popular Times Analysis**: Extracts busy times data for all days of the week
-- **Photo Category Screenshots**: Captures screenshots of all photo category tabs
-- **Modular Architecture**: Clean, maintainable code structure
-- **Robust Error Handling**: Graceful handling of various edge cases
-- **Windows Compatible**: Optimized for Windows console output
-- **Detailed Logging**: Comprehensive logging with visual indicators
-- **Python 3.13 Compatible**: Fully tested with the latest Python version
+- **Tab Navigation**: Seamlessly navigates between Overview, Reviews, and About tabs to gather comprehensive data.
+- **Comprehensive Data Extraction**: Extracts business name, rating, reviews, contact info, services URLs, hours, and detailed "About" tab information.
+- **Popular Times Analysis**: Extracts busy times data for all days of the week.
+- **Photo Category Screenshots**: Captures screenshots of all photo category tabs.
+- **Modular Architecture**: Clean, maintainable code structure.
+- **Robust Error Handling**: Graceful handling of various edge cases.
+- **Windows Compatible**: Optimized for Windows console output.
+- **Detailed Logging**: Comprehensive logging with visual indicators.
+- **Python 3.13 Compatible**: Fully tested with the latest Python version.
 
 ## 📊 Data Extracted
 
-### Basic Information
-- Business name (English & Hindi if available)
-- Hero image URL
-- Rating and review count
-- Business type/category
-- Wheelchair accessibility
+The scraper outputs a single JSON file organized by tabs, mirroring the structure of a Google Maps business page.
 
-### Contact & Location
-- Full address
-- Phone number
-- Website URL
-- Services URL (links to additional business services)
-- Plus code
+### `overview`
 
-### Operational Details
-- Current status (Open/Closed)
-- Weekly operating hours
-- Special features and amenities
+Contains all data from the main "Overview" tab.
 
-### Popular Times
-- Hourly busy percentages for all days
-- Peak time analysis
+- **`basic_info`**:
+    - Business name (English & Hindi if available)
+    - Hero image URL
+    - Rating and review count
+    - Business type/category
+- **`contact_info`**:
+    - Full address
+    - Phone number
+    - Services URL (links to additional business services)
+    - Website URL
+    - Plus code
+- **`operational_info`**:
+    - Current status (Open/Closed)
+    - Weekly operating hours
+- **`additional_info`**:
+    - Special features (e.g., "LGBTQ+ friendly")
+    - Popular times (hourly busy percentages for all days)
+
+### `reviews`
+- `available`: A boolean indicating if the "Reviews" tab is present.
+- `data`: Placeholder for future review data extraction.
+
+### `about`
+
+Contains detailed business attributes from the "About" tab, categorized for clarity.
+
+- **`accessibility_features`**:
+    - `available`: List of available accessibility features.
+    - `unavailable`: List of unavailable accessibility features.
+- **`service_options`**: List of service options (e.g., "In-store shopping").
+- **`amenities`**: List of available amenities (e.g., "Mechanic", "Wi-Fi").
+- **`crowd_info`**: Information about the typical crowd (e.g., "LGBTQ+ friendly").
+- **`planning_info`**: Details for planning a visit (e.g., "Good for quick visit").
+- **`payment_methods`**: Accepted payment types (e.g., "Credit cards", "Google Pay").
+- **`parking_options`**: Available parking options (e.g., "Free street parking").
 
 ### Photo Categories
 - Screenshots of each photo category tab (All, Inside, Videos, By owner, Street View & 360°)
@@ -141,29 +161,55 @@ gmaps_scraper/
 The scraper generates several output files in the `output/` directory:
 
 ### 1. `{business_name}.json`
-Complete business data in structured JSON format:
+Complete business data in tab-organized JSON format:
 ```json
 {
-  "business_name_en": "Tej Tyre Agencies",
-  "business_name_hi": null,
-  "rating": "4.3",
-  "review_count": "123",
-  "address": "Grand Trunk Rd, near Bus Stand, Shakti Colony, Karnal, Haryana 132001",
-  "phone": "093555 19239",
-  "website": "https://stores.yokohama-india.com/...",
-  "services_url": "https://stores.yokohama-india.com/.../product?utm_source=GMB",
-  "status": "Open ⋅ Closes 8 pm",
-  "weekly_hours": {
-    "Monday": "9:00 AM – 8:00 PM",
-    "Tuesday": "9:00 AM – 8:00 PM"
+  "overview": {
+    "basic_info": {
+      "hero_image_url": "https://example.com/image.jpg",
+      "business_name_en": "Business Name",
+      "business_name_hi": "व्यापार का नाम",
+      "rating": "4.5",
+      "review_count": "(123)",
+      "business_type": "Restaurant"
+    },
+    "contact_info": {
+      "address": "123 Main St, City, State 12345",
+      "phone": "+1 234-567-8900",
+      "services_url": "https://example.com/services",
+      "website": "https://example.com",
+      "plus_code": "ABCD+12 City, State"
+    },
+    "operational_info": {
+      "status": "Open ⋅ Closes 9 pm",
+      "weekly_hours": {
+        "Monday": "9:00 AM – 9:00 PM",
+        "Tuesday": "9:00 AM – 9:00 PM"
+      }
+    },
+    "additional_info": {
+      "special_features": ["Wheelchair accessible entrance"],
+      "popular_times": {
+        "Monday": [
+          {"time": "9 AM", "busy_percentage": 25},
+          {"time": "10 AM", "busy_percentage": 45}
+        ]
+      }
+    }
   },
-  "popular_times": {
-    "Monday": [
-      {"time": "9 AM", "busy_percentage": 25},
-      {"time": "10 AM", "busy_percentage": 45}
-    ]
+  "reviews": {
+    "available": true,
+    "data": {}
   },
-  "special_features": ["Wheelchair accessible entrance"]
+  "about": {
+    "accessibility_features": {
+      "available": ["Has wheelchair-accessible entrance"],
+      "unavailable": ["No wheelchair-accessible parking"]
+    },
+    "service_options": ["In-store shopping", "Delivery"],
+    "amenities": ["Wi-Fi", "Restroom"],
+    "payment_methods": ["Credit cards", "Cash", "Mobile payments"]
+  }
 }
 ```
 
@@ -261,18 +307,18 @@ The project follows Python best practices:
 
 ## 🏃‍♂️ Recent Updates
 
-### Version 2.2.0 (Latest)
+### Version 3.0.0 (Latest)
+- ✅ **Tab-Organized JSON Output**: Complete restructure of output format organized by Google Maps tabs (Overview, Reviews, About)
+- ✅ **Enhanced About Tab Extraction**: Comprehensive extraction of accessibility features, service options, amenities, and payment methods
+- ✅ **Advanced Tab Navigation**: Intelligent navigation between Overview, Reviews, and About tabs with robust detection
+- ✅ **Improved Data Structure**: More logical organization mirroring the actual Google Maps interface
+- ✅ **Services URL Positioning**: Properly positioned services_url above website in contact information
+
+### Version 2.2.0
 - ✅ **Services URL Extraction Fix**: Fixed missing services_url in business profile output
 - ✅ **Enhanced Data Completeness**: Now properly captures and saves all contact information
 - ✅ **Improved Logging**: Added detailed logging for services URL extraction
 - ✅ **Bug Fixes**: Resolved issue where services_url was extracted but not saved to JSON output
-
-### Version 2.1.0
-- ✅ **Simplified Photo Extraction**: Replaced complex URL extraction with reliable screenshot capture
-- ✅ **Python 3.13 Support**: Full compatibility with latest Python version
-- ✅ **Improved Stability**: Fixed sync/async conflicts for better reliability
-- ✅ **Enhanced Error Handling**: Better error messages and recovery
-- ✅ **Streamlined Architecture**: Removed unnecessary complexity
 
 ### Key Improvements
 - **Photo screenshots** instead of URL extraction (more reliable)
@@ -302,6 +348,6 @@ For issues, questions, or contributions:
 ---
 
 **Author**: GitHub Copilot & Development Team  
-**Version**: 2.2.0  
+**Version**: 3.0.0  
 **Last Updated**: July 2025  
 **Python Compatibility**: 3.8+ (Tested with 3.13)

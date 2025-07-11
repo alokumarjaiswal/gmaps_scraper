@@ -57,9 +57,22 @@ SELECTORS = {
     "all_photos_button": 'button[aria-label="All"]',
     "photo_divs": 'div.U39Pmb[role="img"]',
     "photo_images": 'img[src^="https://lh3.googleusercontent.com/"]',
-    "data_src_elements": '[data-src^="https://lh3.googleusercontent.com/"]'
+    "data_src_elements": '[data-src^="https://lh3.googleusercontent.com/"]',
+    
+    # Tab navigation selectors - updated for current Google Maps interface
+    "overview_tab": 'button[data-value="overview"], button[aria-label*="Overview"], button:has-text("Overview")',
+    "reviews_tab": 'button[data-value="reviews"], button[aria-label*="Reviews"], button:has-text("Reviews")',
+    "about_tab": 'button[data-value="about"], button[aria-label*="About"], button:has-text("About")',
+    
+    # About tab selectors
+    "about_section_container": 'div[aria-label*="About"][role="region"]',
+    "about_section_titles": 'h2.iL3Qke.fontTitleSmall',
+    "about_section_items": 'div.iP2t7d.fontBodyMedium',
+    "about_feature_lists": 'ul.ZQ6we li.hpLkke',
+    "about_feature_text": 'span[aria-label]'
 }
 
+# Navigation tabs to check
 # Navigation tabs to check
 NAVIGATION_TABS = ["Reviews", "About", "Overview"]
 

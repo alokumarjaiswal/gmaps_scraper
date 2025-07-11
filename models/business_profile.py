@@ -15,38 +15,23 @@ from typing import Dict, List, Optional, Any
 class BusinessProfile:
     """Data class representing a complete business profile from Google Maps."""
     
-    # Basic Information
-    hero_image_url: Optional[str] = None
-    business_name_en: Optional[str] = None
-    business_name_hi: Optional[str] = None
-    rating: Optional[str] = None
-    review_count: Optional[str] = None
-    business_type: Optional[str] = None
+    # Overview Tab Data
+    overview: Optional[Dict[str, Any]] = None
     
-    # Location & Contact
-    address: Optional[str] = None
-    phone: Optional[str] = None
-    website: Optional[str] = None
-    plus_code: Optional[str] = None
+    # Reviews Tab Data  
+    reviews: Optional[Dict[str, Any]] = None
     
-    # Operational Details
-    status: Optional[str] = None
-    weekly_hours: Optional[Dict[str, str]] = None
-    wheelchair_accessible: bool = False
-    
-    # Additional Information
-    special_features: Optional[List[str]] = None
-    services_url: Optional[str] = None
-    popular_times: Optional[Dict[str, List[Dict[str, Any]]]] = None
+    # About Tab Data
+    about: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
-        """Initialize empty collections if None."""
-        if self.weekly_hours is None:
-            self.weekly_hours = {}
-        if self.special_features is None:
-            self.special_features = []
-        if self.popular_times is None:
-            self.popular_times = {}
+        """Initialize empty dictionaries if None."""
+        if self.overview is None:
+            self.overview = {}
+        if self.reviews is None:
+            self.reviews = {}
+        if self.about is None:
+            self.about = {}
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert the business profile to a dictionary."""
@@ -54,8 +39,16 @@ class BusinessProfile:
     
     def has_contact_info(self) -> bool:
         """Check if business has any contact information."""
-        return any([self.phone, self.website, self.address])
+        overview = self.overview or {}
+        contact_info = overview.get('contact_info', {})
+        return any([
+            contact_info.get('phone'), 
+            contact_info.get('website'), 
+            contact_info.get('address')
+        ])
     
     def is_operational_info_available(self) -> bool:
         """Check if operational information is available."""
-        return bool(self.status or self.weekly_hours)
+        overview = self.overview or {}
+        operational_info = overview.get('operational_info', {})
+        return bool(operational_info.get('status') or operational_info.get('weekly_hours'))

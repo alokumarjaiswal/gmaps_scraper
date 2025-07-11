@@ -5,7 +5,7 @@ A comprehensive, modular web scraper for extracting business information from Go
 Built with Playwright for reliable automation and data extraction.
 
 Author: Alok Kumar Jaiswal
-Version: 2.0.0
+Version: 3.0.0
 """
 
 import sys

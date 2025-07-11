@@ -4,7 +4,7 @@ A comprehensive, modular web scraper for extracting business information from Go
 
 ## 🚀 Features
 
-- **Comprehensive Data Extraction**: Business name, rating, reviews, contact info, hours, special features
+- **Comprehensive Data Extraction**: Business name, rating, reviews, contact info, services URLs, hours, special features
 - **Popular Times Analysis**: Extracts busy times data for all days of the week
 - **Photo Category Screenshots**: Captures screenshots of all photo category tabs
 - **Modular Architecture**: Clean, maintainable code structure
@@ -26,6 +26,7 @@ A comprehensive, modular web scraper for extracting business information from Go
 - Full address
 - Phone number
 - Website URL
+- Services URL (links to additional business services)
 - Plus code
 
 ### Operational Details
@@ -51,7 +52,7 @@ A comprehensive, modular web scraper for extracting business information from Go
 
 1. **Clone or download the project**
 ```bash
-git clone <repository-url>
+git clone "https://github.com/alokumarjaiswal/gmaps_scraper.git"
 cd gmaps_scraper
 ```
 
@@ -62,7 +63,7 @@ pip install -r requirements.txt
 
 3. **Install Playwright browsers**
 ```bash
-playwright install chromium
+playwright install
 ```
 
 ## 🎯 Usage
@@ -150,6 +151,7 @@ Complete business data in structured JSON format:
   "address": "Grand Trunk Rd, near Bus Stand, Shakti Colony, Karnal, Haryana 132001",
   "phone": "093555 19239",
   "website": "https://stores.yokohama-india.com/...",
+  "services_url": "https://stores.yokohama-india.com/.../product?utm_source=GMB",
   "status": "Open ⋅ Closes 8 pm",
   "weekly_hours": {
     "Monday": "9:00 AM – 8:00 PM",
@@ -224,7 +226,12 @@ PHOTO_CONFIG = {
    - Check network connectivity
    - Verify photo tab navigation is working
 
-5. **Python 3.13 Compatibility Issues**
+5. **Services URL not extracted**
+   - Not all businesses have services URLs
+   - Check if the business has a "Services" link on their Google Maps page
+   - Look for "Services URL extracted: [URL or Not found]" in the logs
+
+6. **Python 3.13 Compatibility Issues**
    - Use: `pip install playwright==1.40.0` for best compatibility
    - Ensure all dependencies are up to date
 
@@ -254,7 +261,13 @@ The project follows Python best practices:
 
 ## 🏃‍♂️ Recent Updates
 
-### Version 2.1.0 (Latest)
+### Version 2.2.0 (Latest)
+- ✅ **Services URL Extraction Fix**: Fixed missing services_url in business profile output
+- ✅ **Enhanced Data Completeness**: Now properly captures and saves all contact information
+- ✅ **Improved Logging**: Added detailed logging for services URL extraction
+- ✅ **Bug Fixes**: Resolved issue where services_url was extracted but not saved to JSON output
+
+### Version 2.1.0
 - ✅ **Simplified Photo Extraction**: Replaced complex URL extraction with reliable screenshot capture
 - ✅ **Python 3.13 Support**: Full compatibility with latest Python version
 - ✅ **Improved Stability**: Fixed sync/async conflicts for better reliability
@@ -289,6 +302,6 @@ For issues, questions, or contributions:
 ---
 
 **Author**: GitHub Copilot & Development Team  
-**Version**: 2.1.0  
+**Version**: 2.2.0  
 **Last Updated**: July 2025  
 **Python Compatibility**: 3.8+ (Tested with 3.13)

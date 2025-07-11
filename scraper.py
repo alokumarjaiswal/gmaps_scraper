@@ -117,6 +117,7 @@ class GoogleMapsBusinessScraper:
                     phone=contact_info.get('phone'),
                     website=contact_info.get('website'),
                     plus_code=contact_info.get('plus_code'),
+                    services_url=contact_info.get('services_url'),
                     status=operational_info.get('status'),
                     weekly_hours=operational_info.get('weekly_hours'),
                     wheelchair_accessible=operational_info.get('wheelchair_accessible', False),

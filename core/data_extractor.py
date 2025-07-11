@@ -125,7 +125,9 @@ class DataExtractor:
             
             # Services URL
             services_elem = self.page.locator(SELECTORS["services_url"]).first
-            contact_info['services_url'] = safe_extract_attribute(services_elem, "href")
+            services_url = safe_extract_attribute(services_elem, "href")
+            contact_info['services_url'] = services_url
+            logger.info(f"Services URL extracted: {services_url if services_url else 'Not found'}")
             
             logger.info("✅ Contact information extracted successfully")
             return contact_info

@@ -8,6 +8,15 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from playwright.sync_api import Page
 
+try:
+    from config import TIMEOUTS, PHOTO_CONFIG
+except ImportError:
+    # Fallback for direct execution
+    import sys
+    from pathlib import Path
+    sys.path.append(str(Path(__file__).parent.parent))
+    from config import TIMEOUTS, PHOTO_CONFIG
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,7 +45,7 @@ class PhotoExtractor:
             
             # Find and iterate through photo tabs
             tablist_selector = 'div[role="tablist"]'
-            self.page.wait_for_selector(tablist_selector, timeout=10000)
+            self.page.wait_for_selector(tablist_selector, timeout=TIMEOUTS["element_wait"])
             
             # Wait for dynamic content to load
             self._wait_for_photo_tabs_to_load(tablist_selector)
@@ -56,12 +65,12 @@ class PhotoExtractor:
                     
                     # Click tab and wait for content
                     tab.click()
-                    self.page.wait_for_timeout(1500)
+                    self.page.wait_for_timeout(TIMEOUTS["screenshot_delay"])
                     
                     # Wait for images to load
                     self.page.wait_for_selector(
                         'img[class~="DaSXdd"], img[src^="https://lh3.googleusercontent.com/"]',
-                        timeout=5000
+                        timeout=TIMEOUTS["action_wait"]
                     )
                     
                     # Take screenshot
@@ -84,20 +93,23 @@ class PhotoExtractor:
         except Exception as e:
             logger.warning(f"❌ Couldn't click 'All' button: {e}")
     
-    def _wait_for_photo_tabs_to_load(self, tablist_selector: str, max_wait: int = 6000) -> None:
+    def _wait_for_photo_tabs_to_load(self, tablist_selector: str, max_wait: Optional[int] = None) -> None:
         """
         Wait for photo tabs to load dynamically.
         
         Args:
             tablist_selector: CSS selector for tab list
-            max_wait: Maximum wait time in milliseconds
+            max_wait: Maximum wait time in milliseconds (defaults to config value)
         """
+        if max_wait is None:
+            max_wait = PHOTO_CONFIG.get("max_wait_for_tabs") or 5000  # fallback to 5000ms if None
+        
         step = 500
         waited = 0
         
         while waited < max_wait:
             tab_buttons = self.page.locator(f'{tablist_selector} button[role="tab"]')
-            if tab_buttons.count() >= 5:  # Assuming 5+ tabs indicate full load
+            if tab_buttons.count() >= PHOTO_CONFIG["tab_load_threshold"]:  # Use config threshold
                 break
             time.sleep(step / 1000)
             waited += step

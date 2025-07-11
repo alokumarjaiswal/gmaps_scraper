@@ -11,6 +11,16 @@ import sys
 import os
 import re
 from pathlib import Path
+from typing import Optional
+
+try:
+    from config import LOGGING_CONFIG, OUTPUT_CONFIG
+except ImportError:
+    # Fallback for direct execution
+    import sys
+    from pathlib import Path
+    sys.path.append(str(Path(__file__).parent.parent))
+    from config import LOGGING_CONFIG, OUTPUT_CONFIG
 
 
 class ConsoleFormatter(logging.Formatter):
@@ -25,22 +35,30 @@ class ConsoleFormatter(logging.Formatter):
         return clean_message
 
 
-def setup_logging(log_file: str = "gmaps_scraper.log", 
-                 log_level: int = logging.INFO,
+def setup_logging(log_file: Optional[str] = None, 
+                 log_level: Optional[int] = None,
                  verbose: bool = False,
-                 log_dir: str = "logs") -> logging.Logger:
+                 log_dir: Optional[str] = None) -> logging.Logger:
     """
     Set up logging configuration for the scraper.
     
     Args:
-        log_file: Name of the log file
-        log_level: Logging level (default: INFO)
+        log_file: Name of the log file (defaults to config value)
+        log_level: Logging level (defaults to config value)
         verbose: Enable verbose logging
-        log_dir: Directory to store log files
+        log_dir: Directory to store log files (defaults to config value)
         
     Returns:
         logging.Logger: Configured logger instance
     """
+    
+    # Use config defaults if not provided
+    if log_file is None:
+        log_file = OUTPUT_CONFIG["log_file"]
+    if log_dir is None:
+        log_dir = "logs"  # Keep existing default
+    if log_level is None:
+        log_level = getattr(logging, LOGGING_CONFIG["level"])
     
     # Set console encoding for Windows
     if sys.platform == "win32":
@@ -86,7 +104,7 @@ def setup_logging(log_file: str = "gmaps_scraper.log",
     
     # Return logger for this module
     logger = logging.getLogger(__name__)
-    logger.info(f"Logging initialized - Level: {logging.getLevelName(log_level)}")
+    logger.info(f"Logging initialized - Level: {logging.getLevelName(log_level or logging.INFO)}")
     
     return logger
 

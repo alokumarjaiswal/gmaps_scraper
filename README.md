@@ -119,12 +119,13 @@ scraper.print_scraping_summary(business_profile)
 
 ### Configuration
 
-Edit `config.py` to customize:
-- Browser settings (headless mode, viewport size)
-- Timeout values
-- CSS selectors
-- Output file names
-- Photo extraction settings
+Edit `config.py` to customize all aspects of the scraper:
+- Browser settings (headless mode, viewport size, user agent, launch arguments)
+- Timeout values (page load, element wait, screenshots, navigation)
+- CSS selectors for all Google Maps elements
+- Output file names and directory structure
+- Photo extraction settings (delays, thresholds, load times)
+- Logging configuration (level, format, output)
 
 ## 📁 Project Structure
 
@@ -243,8 +244,12 @@ TIMEOUTS = {
 ### Photo Extraction
 ```python
 PHOTO_CONFIG = {
-    "screenshot_delay": 2000,   # Delay before taking screenshot (ms)
-    "tab_click_delay": 1000    # Delay between tab clicks (ms)
+    "screenshot_delay": 1500,   # Delay before taking screenshot (ms)
+    "max_scroll_steps": 5,      # Maximum number of scroll steps when loading photos
+    "max_images_to_click": 3,   # Maximum number of images to click
+    "scroll_positions": [0.2, 0.5, 0.8, 1.0],  # Scroll positions to check
+    "max_wait_for_tabs": 6000,  # Max wait time for photo tabs to load (ms)
+    "tab_load_threshold": 5     # Number of tabs that indicate a successful load
 }
 ```
 
@@ -283,9 +288,13 @@ PHOTO_CONFIG = {
 
 ### Debugging
 
-Enable detailed logging by modifying `utils/logging_config.py`:
+Enable detailed logging by modifying the `LOGGING_CONFIG` in `config.py`:
 ```python
-logging.basicConfig(level=logging.DEBUG)
+LOGGING_CONFIG = {
+    "level": "DEBUG",  # Change from "INFO" to "DEBUG"
+    "format": "%(asctime)s - %(levelname)s - %(message)s",
+    "encoding": "utf-8"
+}
 ```
 
 ## 📝 Development
@@ -307,7 +316,13 @@ The project follows Python best practices:
 
 ## 🏃‍♂️ Recent Updates
 
-### Version 3.0.0 (Latest)
+### Version 3.1.0 (Latest)
+- ✅ **Enhanced Configuration System**: Fully integrated centralized configuration system with all components using `config.py`
+- ✅ **Improved Modularity**: Browser, logging, and photo extraction now use consistent configuration values
+- ✅ **Type-Safe Parameter Handling**: Added robust type handling and defaults for all configurable parameters
+- ✅ **Better Developer Experience**: Easier customization through a single configuration file
+
+### Version 3.0.0
 - ✅ **Tab-Organized JSON Output**: Complete restructure of output format organized by Google Maps tabs (Overview, Reviews, About)
 - ✅ **Enhanced About Tab Extraction**: Comprehensive extraction of accessibility features, service options, amenities, and payment methods
 - ✅ **Advanced Tab Navigation**: Intelligent navigation between Overview, Reviews, and About tabs with robust detection
@@ -348,6 +363,6 @@ For issues, questions, or contributions:
 ---
 
 **Author**: GitHub Copilot & Development Team  
-**Version**: 3.0.0  
+**Version**: 3.1.0  
 **Last Updated**: July 2025  
 **Python Compatibility**: 3.8+ (Tested with 3.13)

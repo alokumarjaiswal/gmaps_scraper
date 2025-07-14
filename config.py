@@ -137,6 +137,43 @@ PHOTO_CONFIG = {
     "tab_load_threshold": 5
 }
 
+# Media extraction configuration
+MEDIA_CONFIG = {
+    "max_scroll_steps": 10,  # Increased for better coverage
+    "scroll_delay": 2000,    # Increased delay for lazy loading
+    "interaction_delay": 1000,
+    "lazy_load_wait": 3000,  # Initial wait for gallery to load
+    "max_media_per_tab": 50,
+    "tab_switch_delay": 1500, # Increased for tab content to load
+    "container_scroll_wait": 1500  # Wait after each container scroll
+}
+
+# Media extraction selectors (based on logic.txt patterns)
+MEDIA_SELECTORS = {
+    # Photo tab selectors
+    "photos_all_button": 'button[aria-label="All"]',
+    "photo_tablist": 'div[role="tablist"]',
+    "photo_tabs": 'div[role="tablist"] button[role="tab"]',
+    "tab_name": 'div.Gpq6kf',
+    
+    # Photo gallery container selectors
+    "photo_gallery_container": 'div.m6QErb.DxyBCb.kA9KIf.dS8AEf.XiKgde',
+    "photo_gallery_inner": 'div.m6QErb.XiKgde[style*="position: relative"]',
+    
+    # Photo/image containers and URLs
+    "photo_containers": 'a.OKAoZd',
+    "photo_background_div": 'div.U39Pmb',
+    "photo_loaded_div": 'div.Uf0tqf.loaded',
+    
+    # Video iframe and container
+    "video_iframe": 'iframe.widget-scene-imagery-iframe',
+    "video_element": 'video',
+    
+    # Generic media elements
+    "image_elements": 'img[src^="https://lh3.googleusercontent.com/"]',
+    "lazy_load_images": 'img[class~="DaSXdd"]',
+}
+
 def get_config() -> Dict[str, Any]:
     """
     Get complete configuration dictionary.
@@ -154,5 +191,7 @@ def get_config() -> Dict[str, Any]:
         "days": DAYS_OF_WEEK,
         "regex": REGEX_PATTERNS,
         "logging": LOGGING_CONFIG,
-        "photos": PHOTO_CONFIG
+        "photos": PHOTO_CONFIG,
+        "media": MEDIA_CONFIG,
+        "media_selectors": MEDIA_SELECTORS
     }

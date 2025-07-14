@@ -6,13 +6,14 @@ A comprehensive, modular web scraper for extracting business information from Go
 
 - **Tab Navigation**: Seamlessly navigates between Overview, Reviews, and About tabs to gather comprehensive data.
 - **Comprehensive Data Extraction**: Extracts business name, rating, reviews, contact info, services URLs, hours, and detailed "About" tab information.
+- **Media URL Extraction**: Extracts actual photo and video URLs from each photo category tab (All, Inside, Videos, By owner, Street View & 360°).
 - **Advanced Review Analysis**:
     - Extracts all reviews by dynamically scrolling and clicking "More" buttons.
     - Utilizes a multi-pass strategy to expand and capture full review text and owner responses.
     - Gathers detailed data for each review: reviewer info, rating, full text, photos, and owner's reply.
 - **Popular Times Analysis**: Extracts busy times data for all days of the week.
 - **Photo Category Screenshots**: Captures screenshots of all photo category tabs.
-- **Modular Architecture**: Clean, maintainable code structure.
+- **Modular Architecture**: Clean, maintainable code structure with specialized extractors.
 - **Robust Error Handling**: Graceful handling of various edge cases.
 - **Windows Compatible**: Optimized for Windows console output.
 - **Detailed Logging**: Comprehensive logging with visual indicators.
@@ -72,8 +73,31 @@ Contains detailed business attributes from the "About" tab, categorized for clar
 - **`amenities`**: List of available amenities (e.g., "Mechanic", "Wi-Fi").
 - **`crowd_info`**: Information about the typical crowd (e.g., "LGBTQ+ friendly").
 - **`planning_info`**: Details for planning a visit (e.g., "Good for quick visit").
-- **`payment_methods`**: Accepted payment types (e.g., "Credit cards", "Google Pay").
-- **`parking_options`**: Available parking options (e.g., "Free street parking").
+    - Payment methods: Accepted payment types (e.g., "Credit cards", "Google Pay").
+    - Parking options: Available parking options (e.g., "Free street parking").
+
+### `photos_videos`
+
+Contains actual media URLs extracted from each photo category tab:
+
+- **`all`**: List of photo/video URLs from "All" tab
+- **`inside`**: List of photo URLs from "Inside" tab  
+- **`videos`**: List of video data with URLs, poster images, and metadata from "Videos" tab
+- **`by_owner`**: List of photo URLs from "By owner" tab
+- **`street_view_360`**: List of photo URLs from "Street View & 360°" tab
+
+Each photo entry contains:
+- `photo_index`: Index of the photo
+- `description`: Photo description from aria-label
+- `high_quality_url`: High-resolution image URL (when loaded)
+- `thumbnail_url`: Thumbnail image URL
+
+Each video entry contains:
+- `video_url`: Direct video file URL
+- `poster_url`: Video thumbnail/poster image URL
+- `format`: Video format information
+- `docid`: Document ID
+- `cpn`: Content playback nonce
 
 ### Photo Categories
 - Screenshots of each photo category tab (All, Inside, Videos, By owner, Street View & 360°)
@@ -184,7 +208,8 @@ gmaps_scraper/
 │       ├── operational_extractor.py # Hours, status, special features
 │       ├── popular_times_extractor.py # Popular times data
 │       ├── about_extractor.py      # About tab detailed information
-│       └── reviews_extractor.py    # Reviews extraction with full text expansion
+│       ├── reviews_extractor.py    # Reviews extraction with full text expansion
+│       └── media_extractor.py      # Photo and video URL extraction
 │
 ├── models/               # Data models
 │   ├── __init__.py
@@ -212,6 +237,7 @@ The scraper now features a **modular extractor architecture** with single respon
 - **`PopularTimesExtractor`**: Specialized extraction of busy times data with day navigation
 - **`AboutExtractor`**: Comprehensive About tab information categorization and extraction
 - **`ReviewsExtractor`**: Advanced review extraction with multi-pass expansion and owner responses
+- **`MediaExtractor`**: Extracts actual photo and video URLs from all photo category tabs
 
 This architecture provides:
 - ✅ **Better maintainability**: Each extractor focuses on one responsibility
@@ -292,6 +318,35 @@ Complete business data in tab-organized JSON format:
     "service_options": ["In-store shopping", "Delivery"],
     "amenities": ["Wi-Fi", "Restroom"],
     "payment_methods": ["Credit cards", "Cash", "Mobile payments"]
+  },
+  "photos_videos": {
+    "all": [
+      {
+        "photo_index": "0",
+        "description": "Photo of restaurant interior",
+        "high_quality_url": "https://lh3.googleusercontent.com/photo_hq.jpg",
+        "thumbnail_url": "https://lh3.googleusercontent.com/photo_thumb.jpg"
+      }
+    ],
+    "inside": [
+      {
+        "photo_index": "1", 
+        "description": "Interior dining area",
+        "high_quality_url": "https://lh3.googleusercontent.com/inside_hq.jpg",
+        "thumbnail_url": "https://lh3.googleusercontent.com/inside_thumb.jpg"
+      }
+    ],
+    "videos": [
+      {
+        "video_url": "https://lh3.googleusercontent.com/video.mp4",
+        "poster_url": "https://lh3.googleusercontent.com/video_poster.jpg",
+        "format": "18",
+        "docid": "",
+        "cpn": "abc123"
+      }
+    ],
+    "by_owner": [],
+    "street_view_360": []
   }
 }
 ```
@@ -323,15 +378,20 @@ TIMEOUTS = {
 }
 ```
 
-### Photo Extraction
+### Media Extraction Settings
 ```python
-PHOTO_CONFIG = {
-    "screenshot_delay": 1500,   # Delay before taking screenshot (ms)
-    "max_scroll_steps": 5,      # Maximum number of scroll steps when loading photos
-    "max_images_to_click": 3,   # Maximum number of images to click
-    "scroll_positions": [0.2, 0.5, 0.8, 1.0],  # Scroll positions to check
-    "max_wait_for_tabs": 6000,  # Max wait time for photo tabs to load (ms)
-    "tab_load_threshold": 5     # Number of tabs that indicate a successful load
+MEDIA_CONFIG = {
+    "max_media_per_tab": 50,    # Maximum number of media items to extract per tab
+    "scroll_wait": 1000,        # Wait time between scrolls (ms)
+    "lazy_load_wait": 2000,     # Wait for lazy loading content (ms)
+    "container_scroll_step": 300 # Pixels to scroll each step
+}
+
+MEDIA_SELECTORS = {
+    "photo_gallery_container": '[data-photo-index="0"]',  # Gallery container for scrolling
+    "photo_container": 'div[data-photo-index]',           # Individual photo containers
+    "video_iframe": 'iframe.widget-scene-imagery-iframe', # Video iframe selector
+    "video_element": 'video'                              # Video element inside iframe
 }
 ```
 
@@ -360,7 +420,13 @@ PHOTO_CONFIG = {
    - Check network connectivity
    - Verify photo tab navigation is working
 
-5. **Review extraction incomplete**
+5. **Media URL extraction issues**
+   - Some photo categories may be empty for certain businesses
+   - Video extraction requires iframe content access which may be restricted
+   - Check logs for "Found X photos/videos" messages
+   - Verify that photo gallery containers are properly detected
+
+6. **Review extraction incomplete**
    - Some reviews may have collapsed text that requires multiple "More" button clicks
    - The scraper uses a multi-pass strategy to expand all content
    - Check logs for "More button" click attempts and success rates
@@ -451,22 +517,33 @@ When Google Maps changes their HTML structure:
 
 ### Code Style
 
-The project follows Python best practices:
-- Type hints for all functions
-- Comprehensive error handling
+## 🏃‍♂️ Recent Updates
+
+### Version 5.1.0 (Latest - Media URL Extraction)
+- ✅ **New Media Extractor**: Added dedicated `MediaExtractor` for extracting actual photo and video URLs
+- ✅ **Photo URL Extraction**: Extracts high-quality and thumbnail URLs from all photo category tabs
+- ✅ **Video URL Extraction**: Extracts video URLs, poster images, and metadata from Videos tab using iframe content access
+- ✅ **Container-Specific Scrolling**: Implemented proper gallery container scrolling to trigger lazy loading
+- ✅ **Comprehensive Media Coverage**: Supports All, Inside, Videos, By owner, and Street View & 360° tabs
+- ✅ **Enhanced Data Structure**: Added `photos_videos` section to output with organized media URLs
+- ✅ **Simplified Video Logic**: Streamlined video extraction following iframe → content frame → video element pattern
+- ✅ **Media Configuration**: Added `MEDIA_CONFIG` and `MEDIA_SELECTORS` for easy customization
+
+### Version 5.0.0 (Modular Architecture)
 - Modular, reusable components
 - Clear logging and documentation
 
 ## 🏃‍♂️ Recent Updates
 
 ### Version 5.0.0 (Latest - Modular Architecture)
-- ✅ **Complete Modular Refactoring**: Restructured data extraction into specialized, single-responsibility modules
-- ✅ **New Extractor Architecture**: Created dedicated extractors for each data category with proper inheritance
-- ✅ **Enhanced Maintainability**: Each extractor focuses on one specific responsibility for easier testing and maintenance
-- ✅ **Improved Code Organization**: Clean separation of concerns with BaseExtractor providing shared functionality
-- ✅ **Better Extensibility**: Easy to add new extractors without affecting existing functionality
-- ✅ **Updated Import Paths**: Migrated to `core.extractors.data_extractor` for cleaner architecture
 - ✅ **Specialized Extractors**: 
+  - `BasicInfoExtractor` - Business names, rating, type, accessibility
+  - `ContactExtractor` - Address, phone, website, services URL
+  - `OperationalExtractor` - Hours, status, special features
+  - `PopularTimesExtractor` - Busy times with day navigation
+  - `AboutExtractor` - Comprehensive About tab categorization
+  - `ReviewsExtractor` - Advanced review processing with expansion
+  - `MediaExtractor` - Photo and video URL extraction from all tabs
   - `BasicInfoExtractor` - Business names, rating, type, accessibility
   - `ContactExtractor` - Address, phone, website, services URL
   - `OperationalExtractor` - Hours, status, special features
@@ -517,10 +594,10 @@ The project follows Python best practices:
 
 This project is for educational and research purposes. Please respect Google's Terms of Service and use responsibly.
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
+**Author**: Alok Kumar Jaiswal  
+**Version**: 5.1.0  
+**Last Updated**: July 2025  
+**Python Compatibility**: 3.8+ (Tested with 3.13)
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request

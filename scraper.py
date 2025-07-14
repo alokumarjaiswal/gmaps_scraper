@@ -112,6 +112,10 @@ class GoogleMapsBusinessScraper:
                 # Extract photos (screenshots) - also from Overview tab
                 self.photo_extractor.extract_photo_categories()
                 
+                # Extract media URLs from all photo tabs
+                logger.info("🎬 Extracting media URLs from photo tabs...")
+                media_urls = self.data_extractor.extract_media_urls()
+                
                 # PHASE 2: Reload business page to get fresh state for tab navigation
                 logger.info("🔄 PHASE 2: Reloading business page for fresh navigation state...")
                 self.navigator.reload_business_page()
@@ -179,7 +183,8 @@ class GoogleMapsBusinessScraper:
                     "additional_info": {
                         "special_features": special_features,
                         "popular_times": popular_times
-                    }
+                    },
+                    "photos_videos": media_urls
                 }
                 
                 reviews_data = reviews_info
@@ -314,6 +319,20 @@ class GoogleMapsBusinessScraper:
         if popular_times:
             total_time_slots = sum(len(times) for times in popular_times.values())
             print(f"Popular times: {total_time_slots} time slots across {len(popular_times)} days")
+        
+        # Print photos/videos summary
+        photos_videos = overview.get('photos_videos')
+        if photos_videos:
+            total_media = photos_videos.get('total_media_count', 0)
+            tabs_count = len(photos_videos.get('tabs', {}))
+            print(f"Media URLs: {total_media} total media items across {tabs_count} photo tabs")
+            
+            # Print breakdown by tab
+            for tab_name, tab_data in photos_videos.get('tabs', {}).items():
+                photo_count = len(tab_data.get('photos', []))
+                video_count = len(tab_data.get('videos', []))
+                if photo_count > 0 or video_count > 0:
+                    print(f"  • {tab_name}: {photo_count} photos, {video_count} videos")
         
         # Print output directory
         print(f"\n📁 Output saved to: {self.output_dir}")

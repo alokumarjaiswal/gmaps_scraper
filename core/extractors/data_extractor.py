@@ -12,6 +12,7 @@ from .operational_extractor import OperationalExtractor
 from .popular_times_extractor import PopularTimesExtractor
 from .about_extractor import AboutExtractor
 from .reviews_extractor import ReviewsExtractor
+from .media_extractor import MediaExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ class DataExtractor:
         self.popular_times_extractor = PopularTimesExtractor(page)
         self.about_extractor = AboutExtractor(page)
         self.reviews_extractor = ReviewsExtractor(page)
+        self.media_extractor = MediaExtractor(page)
     
     def extract_basic_info(self) -> Dict[str, Any]:
         """
@@ -97,4 +99,14 @@ class DataExtractor:
         Returns:
             dict: Reviews information with individual review details
         """
+        return self.reviews_extractor.extract_reviews_tab_info()
+    
+    def extract_media_urls(self) -> Dict[str, Any]:
+        """
+        Extract media URLs from all photo and video tabs.
+        
+        Returns:
+            dict: Media URLs organized by tab name
+        """
+        return self.media_extractor.extract_all_media_urls()
         return self.reviews_extractor.extract_reviews_tab_info()

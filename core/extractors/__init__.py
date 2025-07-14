@@ -9,6 +9,7 @@ from .operational_extractor import OperationalExtractor
 from .popular_times_extractor import PopularTimesExtractor
 from .about_extractor import AboutExtractor
 from .reviews_extractor import ReviewsExtractor
+from .media_extractor import MediaExtractor
 from .data_extractor import DataExtractor
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     'PopularTimesExtractor',
     'AboutExtractor',
     'ReviewsExtractor',
+    'MediaExtractor',
     'DataExtractor',
 ]

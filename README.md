@@ -120,18 +120,15 @@ python main.py
 ### Advanced Usage
 
 ```python
-from scraper import GoogleMapsBusinessScraper
+from core.extractors.data_extractor import DataExtractor
 
-# Create scraper instance
-scraper = GoogleMapsBusinessScraper(
-    output_dir="custom_output"  # Custom output directory
-)
+# Create extractor instance (now uses modular architecture)
+extractor = DataExtractor(page)
 
-# Scrape business data
-business_profile = scraper.scrape_business("https://maps.google.com/...")
-
-# Print summary
-scraper.print_scraping_summary(business_profile)
+# Each method delegates to specialized extractors
+basic_info = extractor.extract_basic_info()        # → BasicInfoExtractor
+contact_info = extractor.extract_contact_info()    # → ContactExtractor
+reviews = extractor.extract_reviews_tab_info()     # → ReviewsExtractor
 ```
 
 ### Configuration
@@ -176,8 +173,18 @@ gmaps_scraper/
 │   ├── __init__.py
 │   ├── browser_manager.py    # Browser lifecycle management
 │   ├── navigator.py          # Google Maps navigation
-│   ├── data_extractor.py     # Data extraction logic
-│   └── photo_extractor.py    # Photo category screenshot capture
+│   ├── photo_extractor.py    # Photo category screenshot capture
+│   │
+│   └── extractors/          # Modular data extraction components
+│       ├── __init__.py
+│       ├── data_extractor.py       # Main extraction orchestrator
+│       ├── base_extractor.py       # Base class for all extractors
+│       ├── basic_info_extractor.py # Basic business information
+│       ├── contact_extractor.py    # Contact and location details
+│       ├── operational_extractor.py # Hours, status, special features
+│       ├── popular_times_extractor.py # Popular times data
+│       ├── about_extractor.py      # About tab detailed information
+│       └── reviews_extractor.py    # Reviews extraction with full text expansion
 │
 ├── models/               # Data models
 │   ├── __init__.py
@@ -192,6 +199,25 @@ gmaps_scraper/
     ├── {business_name}.json  # Business profile data
     └── photo_tab_*.png       # Screenshot of each photo category
 ```
+
+### 🏗️ Modular Extractor Architecture
+
+The scraper now features a **modular extractor architecture** with single responsibility principle:
+
+- **`DataExtractor`**: Main orchestrator that coordinates all specialized extractors
+- **`BaseExtractor`**: Common base class providing shared functionality and imports
+- **`BasicInfoExtractor`**: Extracts hero image, business names, rating, reviews, business type, accessibility
+- **`ContactExtractor`**: Handles address, phone, website, plus code, services URL extraction
+- **`OperationalExtractor`**: Manages status, weekly hours, and special features extraction
+- **`PopularTimesExtractor`**: Specialized extraction of busy times data with day navigation
+- **`AboutExtractor`**: Comprehensive About tab information categorization and extraction
+- **`ReviewsExtractor`**: Advanced review extraction with multi-pass expansion and owner responses
+
+This architecture provides:
+- ✅ **Better maintainability**: Each extractor focuses on one responsibility
+- ✅ **Easier testing**: Individual components can be tested in isolation
+- ✅ **Enhanced extensibility**: New extractors can be added without affecting existing ones
+- ✅ **Cleaner code**: Logical separation of concerns
 
 ## 📤 Output Files
 
@@ -363,11 +389,57 @@ LOGGING_CONFIG = {
 
 ### Adding New Features
 
-1. **New data extraction**: Add methods to `core/data_extractor.py`
+1. **New data extraction**: 
+   - Create a new specialized extractor in `core/extractors/`
+   - Inherit from `BaseExtractor` for shared functionality
+   - Add to `DataExtractor` orchestrator for integration
 2. **New navigation**: Add methods to `core/navigator.py`  
 3. **New data fields**: Update `models/business_profile.py`
 4. **New configuration**: Add to `config.py`
 5. **New selectors**: Add CSS selectors to the `SELECTORS` dictionary in `config.py`
+
+### Creating Custom Extractors
+
+To add a new extractor module:
+
+```python
+# core/extractors/custom_extractor.py
+from .base_extractor import BaseExtractor
+
+class CustomExtractor(BaseExtractor):
+    """Extract custom business information."""
+    
+    def extract_custom_data(self) -> Dict[str, Any]:
+        """Extract custom data from the page."""
+        logger.info("Extracting custom data...")
+        
+        try:
+            # Use inherited helper methods and imports
+            element = self.page.locator(self.selectors["custom_selector"]).first
+            data = self.safe_extract_text(element)
+            
+            logger.info("✅ Custom data extracted successfully")
+            return {"custom_field": data}
+            
+        except Exception as e:
+            logger.error(f"❌ Error extracting custom data: {e}")
+            return {}
+```
+
+Then integrate it into the main `DataExtractor`:
+
+```python
+# core/extractors/data_extractor.py
+from .custom_extractor import CustomExtractor
+
+class DataExtractor:
+    def __init__(self, page: Page):
+        # ...existing extractors...
+        self.custom_extractor = CustomExtractor(page)
+    
+    def extract_custom_data(self) -> Dict[str, Any]:
+        return self.custom_extractor.extract_custom_data()
+```
 
 ### Updating Selectors
 
@@ -387,7 +459,22 @@ The project follows Python best practices:
 
 ## 🏃‍♂️ Recent Updates
 
-### Version 4.1.0 (Latest)
+### Version 5.0.0 (Latest - Modular Architecture)
+- ✅ **Complete Modular Refactoring**: Restructured data extraction into specialized, single-responsibility modules
+- ✅ **New Extractor Architecture**: Created dedicated extractors for each data category with proper inheritance
+- ✅ **Enhanced Maintainability**: Each extractor focuses on one specific responsibility for easier testing and maintenance
+- ✅ **Improved Code Organization**: Clean separation of concerns with BaseExtractor providing shared functionality
+- ✅ **Better Extensibility**: Easy to add new extractors without affecting existing functionality
+- ✅ **Updated Import Paths**: Migrated to `core.extractors.data_extractor` for cleaner architecture
+- ✅ **Specialized Extractors**: 
+  - `BasicInfoExtractor` - Business names, rating, type, accessibility
+  - `ContactExtractor` - Address, phone, website, services URL
+  - `OperationalExtractor` - Hours, status, special features
+  - `PopularTimesExtractor` - Busy times with day navigation
+  - `AboutExtractor` - Comprehensive About tab categorization
+  - `ReviewsExtractor` - Advanced review processing with expansion
+
+### Version 4.1.0
 - ✅ **Centralized Selector Management**: All CSS selectors moved to `config.py` for improved maintainability
 - ✅ **Enhanced Configuration Architecture**: Complete elimination of hardcoded selectors from data extraction modules
 - ✅ **Better Code Organization**: 18+ new selector definitions added to centralized configuration
@@ -448,6 +535,6 @@ For issues, questions, or contributions:
 ---
 
 **Author**: Alok Kumar Jaiswal  
-**Version**: 4.1.0  
+**Version**: 5.0.0  
 **Last Updated**: July 2025  
 **Python Compatibility**: 3.8+ (Tested with 3.13)

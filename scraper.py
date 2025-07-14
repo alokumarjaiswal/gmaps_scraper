@@ -11,7 +11,7 @@ from typing import Dict, List, Any
 try:
     from core.browser_manager import BrowserManager
     from core.navigator import GoogleMapsNavigator
-    from core.data_extractor import DataExtractor
+    from core.extractors.data_extractor import DataExtractor
     from core.photo_extractor import PhotoExtractor
     from models.business_profile import BusinessProfile
     from utils.helpers import save_json_file
@@ -24,7 +24,7 @@ except ImportError:
     
     from core.browser_manager import BrowserManager
     from core.navigator import GoogleMapsNavigator
-    from core.data_extractor import DataExtractor
+    from core.extractors.data_extractor import DataExtractor
     from core.photo_extractor import PhotoExtractor
     from models.business_profile import BusinessProfile
     from utils.helpers import save_json_file

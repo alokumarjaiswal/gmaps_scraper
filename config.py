@@ -7,7 +7,7 @@ from typing import Dict, Any
 
 # Browser configuration
 BROWSER_CONFIG = {
-    "headless": True,
+    "headless": False,
     "slow_mo": 50,
     "viewport": {"width": 1280, "height": 800},
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
@@ -69,7 +69,26 @@ SELECTORS = {
     "about_section_titles": 'h2.iL3Qke.fontTitleSmall',
     "about_section_items": 'div.iP2t7d.fontBodyMedium',
     "about_feature_lists": 'ul.ZQ6we li.hpLkke',
-    "about_feature_text": 'span[aria-label]'
+    "about_feature_text": 'span[aria-label]',
+    
+    # Reviews tab selectors
+    "review_cards": 'div.jftiEf[data-review-id]',  # Main review containers with unique IDs
+    "actual_review_cards": 'div.jftiEf[data-review-id]',  # Same as review_cards - each is a complete review unit
+    "review_more_button": 'button.w8nwRe.kyuRq[aria-label="See more"]',
+    "reviewer_photo_button": 'button.WEBjve',
+    "reviewer_photo_img": 'button.WEBjve img.NBa7we',
+    "reviewer_name_button": 'button.al6Kxe',
+    "reviewer_name": 'button.al6Kxe div.d4r55',
+    "reviewer_details": 'button.al6Kxe div.RfnDt',
+    "review_rating_time": 'div.DU9Pgb',
+    "review_rating": 'span.kvMYJc',
+    "review_time": 'span.rsqaWe',
+    "review_text": 'span.wiI7pd',
+    "review_photo_button": 'button.Tya61d',
+    "owner_response_container": 'div.CDe7pd',
+    "owner_response_title": 'div.CDe7pd span.fontTitleSmall',
+    "owner_response_text": 'div.CDe7pd div.wiI7pd',
+    "owner_response_time": 'div.CDe7pd span.DZSIDd'
 }
 
 # Navigation tabs to check

@@ -119,20 +119,34 @@ class GoogleMapsBusinessScraper:
                 # Re-check tab availability after reload
                 tab_availability = self.navigator.check_tab_availability()
                 
-                # PHASE 3: Navigate to Reviews tab for verification
+                # PHASE 3: Navigate to Reviews tab and extract reviews data
+                reviews_info = {"available": False, "data": {}}
                 if tab_availability.get('Reviews', False):
-                    logger.info("🔍 PHASE 3: Navigating to Reviews tab for verification...")
+                    logger.info("🔍 PHASE 3: Navigating to Reviews tab for data extraction...")
                     if self.navigator.navigate_to_tab("Reviews"):
-                        logger.info("✅ Reviews tab accessible - continuing to About tab")
+                        logger.info("✅ Reviews tab accessible - extracting review data")
+                        reviews_data = self.data_extractor.extract_reviews_tab_info()
+                        reviews_info = {
+                            "available": True,
+                            "data": reviews_data
+                        }
                     else:
                         logger.warning("⚠️ Could not access Reviews tab")
+                        reviews_info["available"] = True  # Tab exists but couldn't navigate
                 else:
                     logger.warning("⚠️ Reviews tab not available on this business page")
                 
-                # PHASE 4: Navigate to About tab and extract detailed information
+                # PHASE 4: Reload again for About tab navigation
+                logger.info("🔄 PHASE 4: Reloading business page for About tab navigation...")
+                self.navigator.reload_business_page()
+                
+                # Re-check tab availability after second reload
+                tab_availability = self.navigator.check_tab_availability()
+                
+                # PHASE 5: Navigate to About tab and extract detailed information
                 about_info = {}
                 if tab_availability.get('About', False):
-                    logger.info("🔍 PHASE 4: Navigating to About tab for detailed data extraction...")
+                    logger.info("🔍 PHASE 5: Navigating to About tab for detailed data extraction...")
                     if self.navigator.navigate_to_tab("About"):
                         about_info = self.data_extractor.extract_about_tab_info()
                     else:
@@ -168,10 +182,7 @@ class GoogleMapsBusinessScraper:
                     }
                 }
                 
-                reviews_data = {
-                    "available": tab_availability.get('Reviews', False),
-                    "data": {}  # Will be populated when Reviews extraction is implemented
-                }
+                reviews_data = reviews_info
                 
                 business_profile = BusinessProfile(
                     overview=overview_data,

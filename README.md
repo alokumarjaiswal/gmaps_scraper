@@ -6,6 +6,10 @@ A comprehensive, modular web scraper for extracting business information from Go
 
 - **Tab Navigation**: Seamlessly navigates between Overview, Reviews, and About tabs to gather comprehensive data.
 - **Comprehensive Data Extraction**: Extracts business name, rating, reviews, contact info, services URLs, hours, and detailed "About" tab information.
+- **Advanced Review Analysis**:
+    - Extracts all reviews by dynamically scrolling and clicking "More" buttons.
+    - Utilizes a multi-pass strategy to expand and capture full review text and owner responses.
+    - Gathers detailed data for each review: reviewer info, rating, full text, photos, and owner's reply.
 - **Popular Times Analysis**: Extracts busy times data for all days of the week.
 - **Photo Category Screenshots**: Captures screenshots of all photo category tabs.
 - **Modular Architecture**: Clean, maintainable code structure.
@@ -41,8 +45,21 @@ Contains all data from the main "Overview" tab.
     - Popular times (hourly busy percentages for all days)
 
 ### `reviews`
-- `available`: A boolean indicating if the "Reviews" tab is present.
-- `data`: Placeholder for future review data extraction.
+
+- **`available`**: A boolean indicating if the "Reviews" tab is present.
+- **`data`**: Contains detailed information about the reviews.
+    - **`total_reviews`**: The total number of reviews found.
+    - **`reviews`**: A list of review objects, each containing:
+        - **`reviewer_photo_url`**: URL of the reviewer's profile picture.
+        - **`reviewer_name`**: Name of the reviewer.
+        - **`reviewer_details`**: Additional details like "Local Guide" or number of reviews.
+        - **`rating`**: The star rating given by the reviewer.
+        - **`review_time`**: When the review was posted (e.g., "a year ago").
+        - **`review_text`**: The full text of the review.
+        - **`review_photos`**: A list of URLs for photos attached to the review.
+        - **`owner_response`**: An object containing the business owner's reply.
+            - **`response_text`**: The full text of the owner's response.
+            - **`response_time`**: When the owner responded.
 
 ### `about`
 
@@ -120,12 +137,31 @@ scraper.print_scraping_summary(business_profile)
 ### Configuration
 
 Edit `config.py` to customize all aspects of the scraper:
-- Browser settings (headless mode, viewport size, user agent, launch arguments)
-- Timeout values (page load, element wait, screenshots, navigation)
-- CSS selectors for all Google Maps elements
-- Output file names and directory structure
-- Photo extraction settings (delays, thresholds, load times)
-- Logging configuration (level, format, output)
+- **Browser settings**: Headless mode, viewport size, user agent, launch arguments
+- **Timeout values**: Page load, element wait, screenshots, navigation
+- **CSS selectors**: All Google Maps elements (centrally managed for easy updates)
+- **Output configuration**: File names and directory structure
+- **Photo extraction settings**: Delays, thresholds, load times
+- **Logging configuration**: Level, format, output
+
+#### Selector Management
+All CSS selectors are now centrally managed in `config.py` under the `SELECTORS` dictionary:
+```python
+SELECTORS = {
+    # Basic business info
+    "business_name_en": "h1.DUwDvf",
+    "rating": '.F7nice span[aria-hidden="true"]',
+    
+    # Review extraction
+    "review_container": 'div.jftiEf[data-review-id]',
+    "review_more_button": 'button.w8nwRe.kyuRq[aria-label="See more"]',
+    "reviewer_name_div": 'div.d4r55',
+    
+    # And many more...
+}
+```
+
+This centralized approach makes it easy to update selectors when Google Maps changes their HTML structure.
 
 ## 📁 Project Structure
 
@@ -200,7 +236,27 @@ Complete business data in tab-organized JSON format:
   },
   "reviews": {
     "available": true,
-    "data": {}
+    "data": {
+      "total_reviews": 41,
+      "reviews": [
+        {
+          "reviewer_photo_url": "https://lh3.googleusercontent.com/...",
+          "reviewer_name": "John Doe",
+          "reviewer_details": "Local Guide · 25 reviews · 15 photos",
+          "rating": "5",
+          "review_time": "2 months ago",
+          "review_text": "Excellent service! The staff was very helpful and knowledgeable...",
+          "review_photos": [
+            "https://lh3.googleusercontent.com/photo1.jpg",
+            "https://lh3.googleusercontent.com/photo2.jpg"
+          ],
+          "owner_response": {
+            "response_text": "Thank you for your kind words! We appreciate your business...",
+            "response_time": "2 months ago"
+          }
+        }
+      ]
+    }
   },
   "about": {
     "accessibility_features": {
@@ -259,7 +315,8 @@ PHOTO_CONFIG = {
 
 1. **"No such element" errors**
    - Google Maps layout may have changed
-   - Update selectors in `config.py`
+   - Update selectors in `config.py` under the `SELECTORS` dictionary
+   - All selectors are now centrally managed for easy maintenance
    - Check if business page loaded correctly
 
 2. **Browser crashes**
@@ -277,12 +334,17 @@ PHOTO_CONFIG = {
    - Check network connectivity
    - Verify photo tab navigation is working
 
-5. **Services URL not extracted**
+5. **Review extraction incomplete**
+   - Some reviews may have collapsed text that requires multiple "More" button clicks
+   - The scraper uses a multi-pass strategy to expand all content
+   - Check logs for "More button" click attempts and success rates
+
+6. **Services URL not extracted**
    - Not all businesses have services URLs
    - Check if the business has a "Services" link on their Google Maps page
    - Look for "Services URL extracted: [URL or Not found]" in the logs
 
-6. **Python 3.13 Compatibility Issues**
+7. **Python 3.13 Compatibility Issues**
    - Use: `pip install playwright==1.40.0` for best compatibility
    - Ensure all dependencies are up to date
 
@@ -305,6 +367,15 @@ LOGGING_CONFIG = {
 2. **New navigation**: Add methods to `core/navigator.py`  
 3. **New data fields**: Update `models/business_profile.py`
 4. **New configuration**: Add to `config.py`
+5. **New selectors**: Add CSS selectors to the `SELECTORS` dictionary in `config.py`
+
+### Updating Selectors
+
+When Google Maps changes their HTML structure:
+1. Open `config.py`
+2. Locate the `SELECTORS` dictionary
+3. Update the relevant CSS selector
+4. All modules will automatically use the updated selector
 
 ### Code Style
 
@@ -316,7 +387,21 @@ The project follows Python best practices:
 
 ## 🏃‍♂️ Recent Updates
 
-### Version 3.1.0 (Latest)
+### Version 4.1.0 (Latest)
+- ✅ **Centralized Selector Management**: All CSS selectors moved to `config.py` for improved maintainability
+- ✅ **Enhanced Configuration Architecture**: Complete elimination of hardcoded selectors from data extraction modules
+- ✅ **Better Code Organization**: 18+ new selector definitions added to centralized configuration
+- ✅ **Improved Maintainability**: Easy updates when Google Maps changes their HTML structure
+- ✅ **Developer-Friendly**: All selectors now documented and organized by functionality
+
+### Version 4.0.0
+- ✅ **Complete Review Extraction**: Fully implemented review data extraction with dynamic loading and multi-pass expansion strategy
+- ✅ **Advanced Text Expansion**: Multi-pass "More" button clicking to ensure complete review text and owner response extraction
+- ✅ **Comprehensive Review Data**: Extracts reviewer info, ratings, full text, photos, and owner responses for all reviews
+- ✅ **Dynamic Review Loading**: Automatically scrolls and loads all available reviews without hardcoded limits
+- ✅ **Intelligent Deduplication**: Uses unique data-review-id attributes to prevent duplicate review extraction
+
+### Version 3.1.0
 - ✅ **Enhanced Configuration System**: Fully integrated centralized configuration system with all components using `config.py`
 - ✅ **Improved Modularity**: Browser, logging, and photo extraction now use consistent configuration values
 - ✅ **Type-Safe Parameter Handling**: Added robust type handling and defaults for all configurable parameters
@@ -362,7 +447,7 @@ For issues, questions, or contributions:
 
 ---
 
-**Author**: GitHub Copilot & Development Team  
-**Version**: 3.1.0  
+**Author**: Alok Kumar Jaiswal  
+**Version**: 4.1.0  
 **Last Updated**: July 2025  
 **Python Compatibility**: 3.8+ (Tested with 3.13)

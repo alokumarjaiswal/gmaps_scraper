@@ -160,8 +160,8 @@ class DataExtractor:
             
             for row in hour_rows:
                 try:
-                    day_elem = row.locator("td").nth(0)
-                    time_elem = row.locator("td").nth(1)
+                    day_elem = row.locator(SELECTORS["table_cell"]).nth(0)
+                    time_elem = row.locator(SELECTORS["table_cell"]).nth(1)
                     
                     day = safe_extract_text(day_elem)
                     raw_time = safe_extract_text(time_elem)
@@ -396,7 +396,7 @@ class DataExtractor:
             
             # Step 2: Find all review containers using exact selector from logic.txt
             # Each div.jftiEf[data-review-id] is one complete review container
-            review_containers = self.page.locator('div.jftiEf[data-review-id]').all()
+            review_containers = self.page.locator(SELECTORS["review_container"]).all()
             logger.info(f"🔍 Step 2: Found {len(review_containers)} review containers")
             
             # Step 3: Extract data from each review container
@@ -440,11 +440,11 @@ class DataExtractor:
                 self.page.wait_for_timeout(2000)  # Wait for content to load
                 
                 # Count current reviews
-                current_review_count = self.page.locator('div.jftiEf[data-review-id]').count()
+                current_review_count = self.page.locator(SELECTORS["review_container"]).count()
                 logger.info(f"📊 Scroll attempt {scroll_attempts + 1}: Found {current_review_count} reviews")
                 
                 # Click all visible "More" buttons to expand truncated text
-                more_buttons = self.page.locator('button.w8nwRe.kyuRq[aria-label="See more"]').all()
+                more_buttons = self.page.locator(SELECTORS["review_more_button"]).all()
                 clicked_count = 0
                 for button in more_buttons:
                     try:
@@ -466,7 +466,7 @@ class DataExtractor:
                 last_review_count = current_review_count
                 scroll_attempts += 1
             
-            final_count = self.page.locator('div.jftiEf[data-review-id]').count()
+            final_count = self.page.locator(SELECTORS["review_container"]).count()
             logger.info(f"✅ Review loading complete: {final_count} total reviews found")
             
             # SECOND PASS: Wait and click any remaining "More" buttons
@@ -478,10 +478,10 @@ class DataExtractor:
                 logger.info(f"🔍 More button check attempt {attempt + 1}/3...")
                 
                 # Click "More" buttons for review text expansion
-                review_more_buttons = self.page.locator('button.w8nwRe.kyuRq[aria-label="See more"]').all()
+                review_more_buttons = self.page.locator(SELECTORS["review_more_button"]).all()
                 
                 # Click "More" buttons for owner response expansion  
-                owner_more_buttons = self.page.locator('button.w8nwRe.kyuRq[aria-label="See more"][jsaction*="expandOwnerResponse"]').all()
+                owner_more_buttons = self.page.locator(SELECTORS["owner_response_more_button"]).all()
                 
                 total_clicked = 0
                 
@@ -534,8 +534,8 @@ class DataExtractor:
             
             # 1. Extract reviewer photo URL from button.WEBjve > img.NBa7we
             try:
-                photo_button = container.locator('button.WEBjve').first
-                photo_img = photo_button.locator('img.NBa7we').first
+                photo_button = container.locator(SELECTORS["reviewer_photo_button"]).first
+                photo_img = photo_button.locator(SELECTORS["reviewer_photo_image"]).first
                 review_data["reviewer_photo_url"] = safe_extract_attribute(photo_img, "src")
                 logger.info(f"  📷 Photo URL: {review_data['reviewer_photo_url'][:50] if review_data['reviewer_photo_url'] else 'None'}...")
             except Exception as e:
@@ -544,9 +544,9 @@ class DataExtractor:
             
             # 2. Extract reviewer name and details from button.al6Kxe
             try:
-                reviewer_button = container.locator('button.al6Kxe').first
-                name_div = reviewer_button.locator('div.d4r55').first
-                details_div = reviewer_button.locator('div.RfnDt').first
+                reviewer_button = container.locator(SELECTORS["reviewer_info_button"]).first
+                name_div = reviewer_button.locator(SELECTORS["reviewer_name_div"]).first
+                details_div = reviewer_button.locator(SELECTORS["reviewer_details_div"]).first
                 
                 review_data["reviewer_name"] = safe_extract_text(name_div)
                 review_data["reviewer_details"] = safe_extract_text(details_div)
@@ -565,10 +565,10 @@ class DataExtractor:
             
             # 3. Extract rating and time from div.DU9Pgb
             try:
-                rating_time_div = container.locator('div.DU9Pgb').first
+                rating_time_div = container.locator(SELECTORS["review_rating_time_div"]).first
                 
                 # Rating from aria-label of span.kvMYJc
-                rating_span = rating_time_div.locator('span.kvMYJc').first
+                rating_span = rating_time_div.locator(SELECTORS["review_rating_span"]).first
                 rating_aria = safe_extract_attribute(rating_span, "aria-label")
                 if rating_aria and "star" in rating_aria:
                     review_data["rating"] = rating_aria.split()[0]  # Extract "5" from "5 stars"
@@ -576,7 +576,7 @@ class DataExtractor:
                     review_data["rating"] = None
                 
                 # Time from span.rsqaWe
-                time_span = rating_time_div.locator('span.rsqaWe').first
+                time_span = rating_time_div.locator(SELECTORS["review_time_span"]).first
                 review_data["review_time"] = safe_extract_text(time_span)
                 
                 logger.info(f"  ⭐ Rating: {review_data['rating']}")
@@ -589,7 +589,7 @@ class DataExtractor:
             
             # 4. Extract review text from span.wiI7pd
             try:
-                text_span = container.locator('span.wiI7pd').first
+                text_span = container.locator(SELECTORS["review_text_span"]).first
                 review_data["review_text"] = safe_extract_text(text_span)
                 logger.info(f"  💬 Text: {review_data['review_text'][:50] if review_data['review_text'] else 'None'}...")
             except Exception as e:
@@ -598,7 +598,7 @@ class DataExtractor:
             
             # 5. Extract review photos from button.Tya61d (background-image URLs)
             try:
-                photo_buttons = container.locator('button.Tya61d').all()
+                photo_buttons = container.locator(SELECTORS["review_photo_button"]).all()
                 review_photos = []
                 for photo_btn in photo_buttons:
                     style = safe_extract_attribute(photo_btn, "style")
@@ -619,14 +619,14 @@ class DataExtractor:
             
             # 6. Extract owner response from div.CDe7pd
             try:
-                owner_response_div = container.locator('div.CDe7pd').first
+                owner_response_div = container.locator(SELECTORS["owner_response_div"]).first
                 if owner_response_div.count() > 0:
                     # Extract response time from span.DZSIDd
-                    response_time_span = owner_response_div.locator('span.DZSIDd').first
+                    response_time_span = owner_response_div.locator(SELECTORS["owner_response_time_span"]).first
                     response_time = safe_extract_text(response_time_span)
                     
                     # Extract response text from div.wiI7pd
-                    response_text_div = owner_response_div.locator('div.wiI7pd').first
+                    response_text_div = owner_response_div.locator(SELECTORS["owner_response_text_div"]).first
                     response_text = safe_extract_text(response_text_div)
                     
                     if response_text:
